@@ -73,19 +73,26 @@ export default async function handler(req, res) {
 
     // ===== 中转模式：配置了 RELAY_URL 时，把请求转交给国内云函数（大陆 IP 出口）=====
     if (process.env.RELAY_URL) {
-      const relayResp = await fetch(process.env.RELAY_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-relay-key': process.env.RELAY_KEY || '',
-        },
-        body: JSON.stringify({
-          p,
-          m: method,
-          headers: payload.headers || {},
-          body: payload.body ?? null,
-        }),
-      });
+      let relayResp;
+      try {
+        relayResp = await fetch(process.env.RELAY_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-relay-key': process.env.RELAY_KEY || '',
+          },
+          body: JSON.stringify({
+            p,
+            m: method,
+            headers: payload.headers || {},
+            body: payload.body ?? null,
+          }),
+        });
+      } catch (err) {
+        // fetch failed 本身信息不足，把底层原因（DNS/连接拒绝/超时）透出来
+        const cause = err?.cause?.code || err?.cause?.message || err?.message;
+        throw new Error(`无法连接中转服务器（请检查云函数公网 URL 是否已启用）: ${cause}`);
+      }
       const text = await relayResp.text();
       if (relayResp.status >= 400) {
         console.warn(`[proxy] relay -> ${relayResp.status}: ${text.slice(0, 200)}`);
