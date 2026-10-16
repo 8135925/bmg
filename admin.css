@@ -1,0 +1,194 @@
+/* ============ 管理控制台专属样式（基于 style.css） ============ */
+
+/* 管理后台表格较宽，容器单独加宽，避免出现横向滚动条 */
+.container {
+  max-width: 1000px;
+}
+
+.stats-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  flex: 1;
+  min-width: 90px;
+  background: #f5f5f7;
+  border-radius: 14px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.stat-num {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d1d1f;
+  letter-spacing: -0.5px;
+}
+
+.stat-num.blue { color: #0071e3; }
+.stat-num.purple { color: #7d2af5; }
+.stat-num.gray { color: #86868b; }
+.stat-num.red { color: #d70015; }
+
+.stat-label {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #86868b;
+}
+
+.section-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 24px 0 14px;
+  letter-spacing: -0.2px;
+}
+
+/* ---------- 生成区 ---------- */
+.gen-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.gen-count {
+  width: 120px;
+  margin-bottom: 0;
+}
+
+.gen-btn {
+  width: auto;
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+.gen-result {
+  margin-top: 18px;
+  background: #f5f5f7;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.gen-warn {
+  font-size: 13px;
+  color: #d70015;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.gen-list {
+  list-style: none;
+  margin-bottom: 14px;
+}
+
+.gen-list li {
+  font-family: "SF Mono", Consolas, Monaco, monospace;
+  font-size: 15px;
+  padding: 10px;
+  background: #ffffff;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  text-align: center;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.gen-list li:hover {
+  background: #eef6ff;
+}
+
+.gen-result .btn-outline {
+  width: 100%;
+}
+
+/* ---------- 表格 ---------- */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid #e8e8ed;
+}
+
+.token-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.token-table th,
+.token-table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f5;
+  white-space: nowrap;
+}
+
+.token-table thead th {
+  background: #f5f5f7;
+  font-weight: 600;
+  color: #86868b;
+  font-size: 13px;
+}
+
+.token-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.name-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.used-name {
+  display: inline-block;
+  font-size: 12px;
+  color: #86868b;
+}
+
+.badge-blue { background: #e8f2ff; color: #0071e3; }
+.badge-purple { background: #f1e9ff; color: #7d2af5; }
+.badge-gray { background: #f5f5f7; color: #86868b; }
+.badge-red { background: #ffe9ec; color: #d70015; }
+
+.op-cell .btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  margin-right: 6px;
+}
+
+.op-assign {
+  background: transparent;
+  color: #0071e3;
+  border: 1px solid #d2d2d7;
+  border-radius: 999px;
+}
+
+.op-assign:hover {
+  border-color: #0071e3;
+  background: rgba(0, 113, 227, 0.06);
+}
+
+.op-revoke {
+  background: transparent;
+  color: #d70015;
+  border: 1px solid #ffc7cc;
+  border-radius: 999px;
+}
+
+.op-revoke:hover {
+  background: #ffe9ec;
+}

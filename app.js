@@ -100,19 +100,21 @@ function showScreen(name) {
   }
 }
 
-/* ================= 门禁（访问密码） ================= */
-async function verifyAccess(pw) {
+/* ================= 门禁（一次性令牌） ================= */
+let usedToken = ''; // 进门用掉的令牌（仅内存），登录成功后用于回传昵称
+
+async function verifyAccess(token) {
   const resp = await fetch('/api/auth', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: pw }),
+    body: JSON.stringify({ token }),
   });
   let j = {};
   try { j = await resp.json(); } catch { /* ignore */ }
   if (resp.status === 500) {
     throw new Error(j.error || '服务端配置错误');
   }
-  return j.ok === true;
+  return j;
 }
 
 function gateError(msg) {
@@ -123,24 +125,25 @@ function gateError(msg) {
 
 async function submitGate(e) {
   e.preventDefault();
-  const pw = $('gate-password').value;
-  if (!pw) {
-    gateError('请输入访问密码');
+  const val = $('gate-password').value.trim();
+  if (!val) {
+    gateError('请输入一次性令牌');
     return;
   }
   const btn = $('gate-submit');
   btn.disabled = true;
   btn.textContent = '验证中...';
   try {
-    const ok = await verifyAccess(pw);
-    if (ok) {
-      // 密码仅存在于内存，不做任何保存
+    const r = await verifyAccess(val);
+    if (r.ok) {
+      // 令牌即焚，不做任何保存；仅在内存中留作昵称绑定凭据
+      usedToken = val;
       $('gate-password').value = '';
       $('gate-error').classList.add('hidden');
       showScreen('login');
       startQrLogin();
     } else {
-      gateError('访问密码错误，请重试');
+      gateError(r.error || '令牌无效，请向管理员索取');
     }
   } catch (err) {
     gateError(err.message);
@@ -164,6 +167,15 @@ async function checkLogin(tok) {
   return null;
 }
 
+/** 把保密观昵称绑定到进门用的令牌上（管理后台可见"实际使用者"），失败不影响使用 */
+function bindNickname(tok, nick) {
+  fetch('/api/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tok, nickname: nick }),
+  }).catch(() => { /* 静默，不打断用户 */ });
+}
+
 /** 登录成功后进入主界面 */
 async function enterMain() {
   const nick = await checkLogin(token);
@@ -175,6 +187,7 @@ async function enterMain() {
     return;
   }
   nickname = nick;
+  if (usedToken) bindNickname(usedToken, nick);
   $('welcome').textContent = `登录成功，欢迎: ${nick}`;
   $('log').innerHTML = '';
   showScreen('main');

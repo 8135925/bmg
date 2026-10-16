@@ -14,20 +14,20 @@
 <body>
   <div class="container">
     <header>
-      <h1>保密教育自动学习-</h1>
+      <h1>保密教育自动学习</h1>
       <p class="subtitle">2026 年度全国保密教育线上培训</p>
     </header>
 
-    <!-- 访问密码门禁 -->
+    <!-- 一次性令牌门禁 -->
     <section id="screen-gate" class="card screen">
-      <h2>访问验证</h2>
-      <p class="tip">本站启用访问密码保护，请输入访问密码进入</p>
+      <h2>令牌验证</h2>
+      <p class="tip">请输入管理员发放的一次性令牌进入，令牌使用一次后即失效</p>
       <form id="gate-form" autocomplete="off">
         <input
-          type="password"
+          type="text"
           id="gate-password"
           class="input"
-          placeholder="请输入访问密码"
+          placeholder="请输入一次性令牌"
           autocomplete="off"
         />
         <button type="submit" class="btn btn-primary" id="gate-submit">进入</button>

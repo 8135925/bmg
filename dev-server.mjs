@@ -11,14 +11,19 @@ import { fileURLToPath } from 'node:url';
 
 import authHandler from './api/auth.js';
 import proxyHandler from './api/proxy.js';
+import adminHandler from './api/admin.js';
 
 const PORT = Number(process.env.PORT || 3000);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 
-if (!process.env.ACCESS_PASSWORD) {
-  process.env.ACCESS_PASSWORD = '123456';
-  console.warn('[dev] 未设置 ACCESS_PASSWORD 环境变量，本地默认使用: 123456');
+if (!process.env.ADMIN_PASSWORD) {
+  process.env.ADMIN_PASSWORD = '123456';
+  console.warn('[dev] 未设置 ADMIN_PASSWORD 环境变量，本地默认使用: 123456');
+}
+if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  console.warn('[dev] 未设置 BLOB_READ_WRITE_TOKEN 环境变量，令牌功能将不可用！');
+  console.warn('[dev] 请在 Vercel 项目 Storage 中创建 Blob，复制 .env 中的令牌并设置后重试');
 }
 
 const MIME = {
@@ -62,6 +67,10 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/auth') {
       if (req.method === 'POST') req.body = JSON.parse((await readBody(req)) || '{}');
       return authHandler(req, res);
+    }
+    if (pathname === '/api/admin') {
+      if (req.method === 'POST') req.body = JSON.parse((await readBody(req)) || '{}');
+      return adminHandler(req, res);
     }
     if (pathname === '/api/proxy') {
       if (req.method === 'POST') req.body = JSON.parse((await readBody(req)) || '{}');

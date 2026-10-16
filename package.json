@@ -1,7 +1,10 @@
 {
   "name": "bmg-web",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "保密教育自动学习 Web 版（Vercel 部署，含访问密码门禁）"
+  "description": "保密教育自动学习 Web 版（Vercel 部署，一次性令牌 + 管理后台）",
+  "dependencies": {
+    "@vercel/blob": "^1.0.0"
+  }
 }

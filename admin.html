@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>令牌管理控制台</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗝️</text></svg>">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>令牌管理控制台</h1>
+      <p class="subtitle">生成与分配一次性访问令牌</p>
+    </header>
+
+    <!-- 管理员门禁 -->
+    <section id="screen-gate" class="card screen">
+      <h2>管理员验证</h2>
+      <p class="tip">请输入管理员密码（配置在 Vercel 环境变量 ADMIN_PASSWORD 中）</p>
+      <form id="gate-form" autocomplete="off">
+        <input
+          type="password"
+          id="admin-password"
+          class="input"
+          placeholder="管理员密码"
+          autocomplete="off"
+        />
+        <button type="submit" class="btn btn-primary" id="gate-submit">进入控制台</button>
+      </form>
+      <p id="gate-error" class="error-msg hidden"></p>
+    </section>
+
+    <!-- 控制台主界面 -->
+    <section id="screen-main" class="card screen hidden">
+      <!-- 统计 -->
+      <div class="stats-row">
+        <div class="stat"><span id="stat-total" class="stat-num">0</span><span class="stat-label">总数</span></div>
+        <div class="stat"><span id="stat-available" class="stat-num blue">0</span><span class="stat-label">未分配</span></div>
+        <div class="stat"><span id="stat-assigned" class="stat-num purple">0</span><span class="stat-label">已分配</span></div>
+        <div class="stat"><span id="stat-used" class="stat-num gray">0</span><span class="stat-label">已使用</span></div>
+        <div class="stat"><span id="stat-revoked" class="stat-num red">0</span><span class="stat-label">已吊销</span></div>
+      </div>
+
+      <!-- 生成 -->
+      <div class="section-title">生成令牌</div>
+      <div class="gen-row">
+        <input type="number" id="gen-count" class="input gen-count" min="1" max="100" value="1" placeholder="数量">
+        <button class="btn btn-primary gen-btn" id="btn-generate">生成</button>
+        <button class="btn btn-outline gen-btn" id="btn-refresh">刷新列表</button>
+      </div>
+      <div id="gen-result" class="gen-result hidden">
+        <p class="gen-warn">明文令牌仅此一次展示，请立即分发。离开页面后无法再次查看。</p>
+        <ul id="gen-list" class="gen-list"></ul>
+        <button class="btn btn-outline" id="btn-copy">一键复制全部</button>
+      </div>
+
+      <!-- 列表 -->
+      <div class="section-title">令牌列表</div>
+      <div class="table-wrap">
+        <table class="token-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>状态</th>
+              <th>分配给 / 使用者</th>
+              <th>生成时间</th>
+              <th>使用时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="token-tbody"></tbody>
+        </table>
+      </div>
+      <p id="empty-tip" class="tip hidden" style="text-align:center;">暂无令牌，请先生成</p>
+    </section>
+
+    <footer class="footer">
+      <p>仅供个人学习使用 · 令牌明文不落库，仅存 SHA-256 哈希</p>
+    </footer>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
