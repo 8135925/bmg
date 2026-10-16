@@ -18,8 +18,14 @@ const LOCAL_FILE = path.join(
   'tokens.local.json'
 );
 
+// 线上环境禁止走本地文件兜底（函数文件系统只读，会报 EROFS）
+const isVercel = Boolean(process.env.VERCEL);
+
 export async function loadTokens() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    if (isVercel) {
+      throw new Error('未检测到 BLOB_READ_WRITE_TOKEN，请先在项目 Storage 中创建 Blob 存储');
+    }
     try {
       const arr = JSON.parse(await readFile(LOCAL_FILE, 'utf8'));
       return Array.isArray(arr) ? arr : [];
@@ -42,6 +48,9 @@ export async function loadTokens() {
 
 export async function saveTokens(tokens) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    if (isVercel) {
+      throw new Error('未检测到 BLOB_READ_WRITE_TOKEN，请先在项目 Storage 中创建 Blob 存储');
+    }
     await writeFile(LOCAL_FILE, JSON.stringify(tokens, null, 2), 'utf8');
     return;
   }
