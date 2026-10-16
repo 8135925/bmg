@@ -58,7 +58,10 @@ export default async function handler(req, res) {
     const record = tokens.find((t) => t.hash === hash);
 
     if (!record) {
-      return res.status(200).json({ ok: false, error: '令牌无效，请向管理员索取' });
+      return res.status(200).json({
+        ok: false,
+        error: `令牌无效，请向管理员索取（服务端已加载 ${tokens.length} 条令牌记录）`,
+      });
     }
     if (record.status === 'used') {
       return res.status(200).json({ ok: false, error: '该令牌已被使用，请向管理员索取新令牌' });

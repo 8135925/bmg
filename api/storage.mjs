@@ -1,17 +1,18 @@
-import { head, put } from '@vercel/blob';
+import { put, list, del } from '@vercel/blob';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
  * 令牌存储层
- * - 线上（配置了 BLOB_READ_WRITE_TOKEN）：存 Vercel Blob 的 tokens.json
- *   注意：@vercel/blob 1.1.1 已移除服务端读取函数 get()，
- *   改用 head() 取回 blob 的公开 URL 后用 fetch 读取内容。
- * - 本地（未配置该环境变量）：自动降级为项目根目录的 tokens.local.json 文件，
- *   无需 Vercel 即可完整测试令牌流程。
+ * - 线上（配置了 BLOB_READ_WRITE_TOKEN）：存 Vercel Blob
+ *   采用"版本化文件名"策略：每次保存写入 tokens/<时间戳>.json 的新文件，
+ *   读取时取最新的一个。因为每次都是全新 URL，彻底规避 Blob CDN
+ *   对同名文件的不可变缓存导致的读取旧数据问题。
+ * - 本地（未配置该环境变量）：降级为项目根目录的 tokens.local.json 文件。
  */
-const BLOB_KEY = 'tokens.json';
+const BLOB_DIR = 'tokens/';
+const LEGACY_KEY = 'tokens.json'; // 兼容早期版本写入的单文件
 const LOCAL_FILE = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -20,6 +21,35 @@ const LOCAL_FILE = path.join(
 
 // 线上环境禁止走本地文件兜底（函数文件系统只读，会报 EROFS）
 const isVercel = Boolean(process.env.VERCEL);
+
+function parseVersion(pathname) {
+  const m = pathname.match(/(\d+)\.json$/);
+  return m ? Number(m[1]) : 0;
+}
+
+async function loadFromBlob() {
+  const result = await list({ prefix: BLOB_DIR, limit: 100 });
+  const blobs = (result.blobs || [])
+    .slice()
+    .sort((a, b) => parseVersion(b.pathname) - parseVersion(a.pathname));
+
+  for (const b of blobs) {
+    try {
+      const resp = await fetch(b.url, { cache: 'no-store' });
+      if (!resp.ok) continue;
+      const arr = await resp.json();
+      if (Array.isArray(arr)) {
+        // 异步清理旧版本文件（不阻塞读取）
+        const stale = blobs.filter((x) => x.url !== b.url).map((x) => x.url);
+        if (stale.length) del(stale).catch(() => {});
+        return arr;
+      }
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
 
 export async function loadTokens() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -33,19 +63,25 @@ export async function loadTokens() {
       return [];
     }
   }
+
+  const fromVersioned = await loadFromBlob();
+  if (fromVersioned) return fromVersioned;
+
+  // 兼容早期版本写入的 tokens.json 单文件
   try {
-    // head 在 blob 不存在时会抛 BlobNotFoundError，统一按空处理
-    const meta = await head(BLOB_KEY);
-    if (!meta || !meta.url) return [];
-    // 加时间戳参数绕过 CDN 缓存，确保读到最新写入的令牌数据
-    const sep = meta.url.includes('?') ? '&' : '?';
-    const resp = await fetch(`${meta.url}${sep}t=${Date.now()}`, { cache: 'no-store' });
-    if (!resp.ok) return [];
-    const arr = await resp.json();
-    return Array.isArray(arr) ? arr : [];
+    const { head } = await import('@vercel/blob');
+    const meta = await head(LEGACY_KEY);
+    if (meta && meta.url) {
+      const resp = await fetch(meta.url, { cache: 'no-store' });
+      if (resp.ok) {
+        const arr = await resp.json();
+        if (Array.isArray(arr)) return arr;
+      }
+    }
   } catch {
-    return [];
+    /* 不存在则忽略 */
   }
+  return [];
 }
 
 export async function saveTokens(tokens) {
@@ -56,9 +92,22 @@ export async function saveTokens(tokens) {
     await writeFile(LOCAL_FILE, JSON.stringify(tokens, null, 2), 'utf8');
     return;
   }
-  await put(BLOB_KEY, JSON.stringify(tokens), {
+
+  // 写入全新版本文件（全新 URL，绝无缓存问题）
+  const pathname = `${BLOB_DIR}${Date.now()}.json`;
+  await put(pathname, JSON.stringify(tokens), {
     access: 'public',
     contentType: 'application/json',
-    allowOverwrite: true,
   });
+
+  // 清理旧版本文件
+  try {
+    const result = await list({ prefix: BLOB_DIR, limit: 100 });
+    const stale = (result.blobs || [])
+      .filter((b) => b.pathname !== pathname)
+      .map((b) => b.url);
+    if (stale.length) await del(stale);
+  } catch {
+    /* 清理失败不影响主流程 */
+  }
 }
