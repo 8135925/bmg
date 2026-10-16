@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>保密教育自动学习</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.3.2/jsencrypt.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.2/spark-md5.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>保密教育自动学习</h1>
+      <p class="subtitle">2026 年度全国保密教育线上培训</p>
+    </header>
+
+    <!-- 访问密码门禁 -->
+    <section id="screen-gate" class="card screen">
+      <h2>访问验证</h2>
+      <p class="tip">本站启用访问密码保护，请输入访问密码进入</p>
+      <form id="gate-form" autocomplete="off">
+        <input
+          type="password"
+          id="gate-password"
+          class="input"
+          placeholder="请输入访问密码"
+          autocomplete="off"
+        />
+        <button type="submit" class="btn btn-primary" id="gate-submit">进入</button>
+      </form>
+      <p id="gate-error" class="error-msg hidden"></p>
+    </section>
+
+    <!-- 登录 -->
+    <section id="screen-login" class="card screen hidden">
+      <div class="tabs">
+        <button class="tab active" id="tab-qr" data-tab="qr">扫码登录</button>
+        <button class="tab" id="tab-account" data-tab="account">账号密码登录</button>
+      </div>
+
+      <!-- 扫码登录 -->
+      <div id="panel-qr" class="panel">
+        <div id="qrcode" class="qrcode-box"></div>
+        <p id="qr-status" class="tip">正在获取二维码...</p>
+        <button class="btn btn-outline" id="qr-refresh">刷新二维码</button>
+      </div>
+
+      <!-- 账号密码登录 -->
+      <div id="panel-account" class="panel hidden">
+        <form id="account-form" autocomplete="off">
+          <input type="text" id="login-name" class="input" placeholder="用户名" autocomplete="off">
+          <input type="password" id="login-pass" class="input" placeholder="密码">
+          <button type="submit" class="btn btn-primary" id="account-submit">登录</button>
+        </form>
+        <p id="account-error" class="error-msg hidden"></p>
+      </div>
+    </section>
+
+    <!-- 主界面 -->
+    <section id="screen-main" class="card screen hidden">
+      <div class="welcome-row">
+        <span id="welcome" class="welcome"></span>
+        <button class="btn btn-ghost" id="btn-logout">退出登录</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary btn-block" id="btn-all">一键完成学习与考试</button>
+        <button class="btn btn-outline btn-block" id="btn-study">仅学习课程</button>
+        <button class="btn btn-outline btn-block" id="btn-exam">仅完成考试</button>
+      </div>
+
+      <div id="log" class="log"></div>
+    </section>
+
+    <footer class="footer">
+      <p>为防止密码泄露，使用完毕后请及时在保密观 APP 修改密码</p>
+      <p>仅供个人学习使用 · 凭证不做任何保存</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
