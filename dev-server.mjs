@@ -2,7 +2,8 @@
  * 本地开发服务器（零依赖，纯 Node）
  * 复用 api/auth.js 与 api/proxy.js 的线上逻辑，行为与 Vercel 部署一致。
  * 启动：node dev-server.mjs
- * 访问密码取环境变量 ACCESS_PASSWORD；未设置时默认 123456（仅本地调试用）。
+ * 管理员密码取环境变量 ADMIN_PASSWORD，未设置时默认 123456（仅本地调试用）。
+ * 未设置 BLOB_READ_WRITE_TOKEN 时令牌自动降级为本地文件存储。
  */
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -99,5 +100,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[dev] http://localhost:${PORT}  (访问密码: ${process.env.ACCESS_PASSWORD})`);
+  console.log(`[dev] http://localhost:${PORT}  (管理员密码: ${process.env.ADMIN_PASSWORD})`);
 });
