@@ -28,6 +28,7 @@ function upstreamRequest(pathWithQuery, method, headers, body) {
         path: pathWithQuery,
         method,
         headers,
+        timeout: 15000, // 上游 15 秒无响应即超时，避免长时间挂起
       },
       (upRes) => {
         const chunks = [];
@@ -41,7 +42,13 @@ function upstreamRequest(pathWithQuery, method, headers, body) {
         );
       }
     );
-    req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy(new Error('连接上游超时（15秒），目标站可能拒绝了当前网络环境的连接'));
+    });
+    req.on('error', (err) => {
+      console.warn(`[proxy] network error ${method} ${pathWithQuery}: ${err.message}`);
+      reject(err);
+    });
     if (body != null) req.write(body);
     req.end();
   });
@@ -63,6 +70,33 @@ export default async function handler(req, res) {
     if (typeof p !== 'string' || !p.startsWith('/') || p.length > 4000 || p.includes('..')) {
       return res.status(400).json({ error: '非法的目标路径' });
     }
+
+    // ===== 中转模式：配置了 RELAY_URL 时，把请求转交给国内云函数（大陆 IP 出口）=====
+    if (process.env.RELAY_URL) {
+      const relayResp = await fetch(process.env.RELAY_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-relay-key': process.env.RELAY_KEY || '',
+        },
+        body: JSON.stringify({
+          p,
+          m: method,
+          headers: payload.headers || {},
+          body: payload.body ?? null,
+        }),
+      });
+      const text = await relayResp.text();
+      if (relayResp.status >= 400) {
+        console.warn(`[proxy] relay -> ${relayResp.status}: ${text.slice(0, 200)}`);
+      }
+      return res
+        .status(relayResp.status)
+        .setHeader('Content-Type', relayResp.headers.get('content-type') || 'application/json')
+        .send(text);
+    }
+
+    // ===== 直连模式：未配置 RELAY_URL 时的原有逻辑（仅大陆网络环境可用）=====
 
     // 严格对齐 Python requests 的请求头，避免触发目标站 WAF
     const outHeaders = {
@@ -101,6 +135,7 @@ export default async function handler(req, res) {
       .setHeader('Content-Type', upstream.contentType)
       .send(upstream.body);
   } catch (err) {
+    console.warn(`[proxy] request failed: ${err?.message}`);
     res.status(502).json({ error: '转发请求失败: ' + (err?.message || '未知错误') });
   }
 }
