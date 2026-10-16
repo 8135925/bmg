@@ -16,15 +16,46 @@
 ## 部署步骤
 
 1. 将本项目推送到 GitHub 仓库（或使用 [Vercel CLI](https://vercel.com/docs/cli) 直接部署）。
-
 2. 在 Vercel 导入该仓库创建项目。
-
-3. **配置访问密码**（必须）：
-   - 进入 Vercel 项目 → `Settings` → `Environment Variables`
-   - 新增变量：名称 `ACCESS_PASSWORD`，值为你想要的访问密码
-   - Environment 建议同时勾选 `Production`、`Preview`、`Development`
-
+3. 按下方【配置访问密码（详细流程）】设置环境变量。
 4. 点击 `Deploy` 部署。访问分配的域名（如 `xxx.vercel.app`），输入访问密码即可使用。
+
+## 配置访问密码（详细流程）
+
+> [!IMPORTANT]
+> 不配置 `ACCESS_PASSWORD` 网站将无法进入，部署后必须完成此步骤。
+> 新版 Vercel 界面中，环境变量已合并到 **Environments**（环境）页面，按环境单独管理。
+
+**方式一：通过 Environments 页面（当前界面）**
+
+1. 打开 [vercel.com](https://vercel.com) 并登录，进入 Dashboard，点击你的项目（如 `bmg`）
+2. 点击顶部 **Project Settings** → 左侧菜单选择 **Environments**
+3. 点击环境列表中的 **Production**（生产环境，跟踪 main 分支）
+4. 进入该环境详情页后添加变量：
+   - 名称：`ACCESS_PASSWORD`（区分大小写，必须完全一致）
+   - 值：你想设置的访问密码（建议使用 8 位以上的字母+数字组合）
+   - 类型：选 **Secret**（保存后只写不可读，适合密码）
+5. 保存。若需要预览/本地环境生效，再依次点进 **Preview**、**Development** 重复添加（仅配 Production 即可正常使用）
+6. **触发重新部署使其生效**（仅保存变量不会更新已部署的网站）：
+   - 方式一：**Deployments** 标签页 → 最新一条部署右侧 `⋯` → **Redeploy**
+   - 方式二：推送任意新提交到 GitHub 仓库，自动触发重新部署
+7. 验证：打开网站，输入设置的密码，能进入即配置成功
+
+**方式二：直接访问 URL**
+
+```
+https://vercel.com/<你的团队名>/<项目名>/settings/environment-variables
+```
+
+**方式三：搜索定位**
+
+使用 Dashboard 左上角 **Find** 搜索框（快捷键 `F`），输入 `Environment Variables` 快速跳转。
+
+**注意事项**
+
+- 选择 Secret 类型的变量保存后其值在后台不可再查看（仅可修改），请自行妥善保管
+- 修改密码：进入对应环境详情页，找到 `ACCESS_PASSWORD` 修改值并保存，然后按第 6 步重新部署
+- 生效规则：尚未进入的用户输入旧密码会被拒绝；已进入的用户本次会话不受影响，下次打开页面需输入新密码
 
 ## 修改访问密码
 
