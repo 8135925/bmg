@@ -37,7 +37,9 @@ export async function loadTokens() {
     // head 在 blob 不存在时会抛 BlobNotFoundError，统一按空处理
     const meta = await head(BLOB_KEY);
     if (!meta || !meta.url) return [];
-    const resp = await fetch(meta.url, { cache: 'no-store' });
+    // 加时间戳参数绕过 CDN 缓存，确保读到最新写入的令牌数据
+    const sep = meta.url.includes('?') ? '&' : '?';
+    const resp = await fetch(`${meta.url}${sep}t=${Date.now()}`, { cache: 'no-store' });
     if (!resp.ok) return [];
     const arr = await resp.json();
     return Array.isArray(arr) ? arr : [];
